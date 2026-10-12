@@ -1,0 +1,35 @@
+{
+  "_说明": "复制成 brain.json 再改。brain.json 已被 .gitignore 排除，key 不会进仓库。",
+  "brain": "echo",
+
+  "_brain 可选值": "echo = 假大脑（只验证管道，不花钱）；api = 真大脑",
+
+  "base_url": "https://api.deepseek.com",
+  "model": "deepseek-chat",
+  "api_key": "",
+
+  "_其他家怎么填": [
+    "只要是 OpenAI 兼容的 /chat/completions 就行：",
+    "  OpenAI   base_url=https://api.openai.com/v1        model=gpt-4o-mini",
+    "  月之暗面  base_url=https://api.moonshot.cn/v1       model=moonshot-v1-8k",
+    "  本地 Ollama  base_url=http://localhost:11434/v1     model=qwen2.5  （api_key 随便填个非空值）"
+  ],
+
+  "temperature": 1.1,
+  "max_tokens": 600,
+  "history_turns": 12,
+  "interval": 0.4,
+  "replay": false,
+  "timeout": 60,
+
+  "_write_mood": "true = 心跳连 mood 一起写（球会显示 思考/出错）。false = 只刷心跳，把 mood 让给游戏 mod，否则你设的颜色会被每 3 秒踩回 idle。",
+  "write_mood": true,
+
+  "_改文件名要改这里": "下面这些是顶层键，跟 brain.json 里其它键平级 —— 不是分组。",
+  "input_file": "input.log",
+  "output_file": "monologue.log",
+  "persona_file": "persona.md",
+  "context_file": "context.md",
+  "history_file": "brain_history.json",
+  "status_file": "status.json"
+}
