@@ -1,0 +1,35 @@
+{
+  "_说明": "把本文件复制成 themes.json，里面每个主题都会自动出现在球的「主题」菜单里。不需要改任何代码。",
+  "_忽略规则": "以下划线开头的键会被忽略，可以拿来写注释。同名的主题会覆盖内置的 light / dark。",
+  "_字段": "label=菜单里显示的名字; menu_*=右键菜单; panel_*=独白面板; you_fg=「你」说的话的颜色",
+
+  "ocean": {
+    "label": "深海",
+    "menu_bg": "#0b1a2a",
+    "menu_border": "#1e3a5f",
+    "menu_line": "#1e3a5f",
+    "menu_text": "#e0f2ff",
+    "menu_sub": "#7aa7c7",
+    "menu_hover": "#16304a",
+    "menu_danger": "#ff99a4",
+    "panel_bg": "#0b1a2a",
+    "panel_fg": "#dbeafe",
+    "panel_border": "#1e3a5f",
+    "you_fg": "#38bdf8"
+  },
+
+  "paper": {
+    "label": "纸",
+    "menu_bg": "#faf7f0",
+    "menu_border": "#ddd6c8",
+    "menu_line": "#e6e0d4",
+    "menu_text": "#2b2a26",
+    "menu_sub": "#8a8375",
+    "menu_hover": "#ece6da",
+    "menu_danger": "#b3261e",
+    "panel_bg": "#faf7f0",
+    "panel_fg": "#2b2a26",
+    "panel_border": "#ddd6c8",
+    "you_fg": "#9a5b00"
+  }
+}
