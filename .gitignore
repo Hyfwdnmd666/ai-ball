@@ -1,16 +1,26 @@
 # ---- 你的 key 在这里，千万别提交 ----
 brain.json
+# 语音的 API key。这个文件一旦进了仓库就等于把 key 公开了。
+_minimax-key.txt
+*.key
+*key*.txt
 
 # ---- 运行期状态：控制面板会实时改写它们 ----
 # 真正的默认值在 ball.py 的 DEFAULTS 里，这几个文件进了仓库只会让人以为
 # 「这就是出厂设置」，然后越漂越远。
 config.json
+voice.json
 input.log
 monologue.log
 status.json
 brain_history.json
+voice.log
 state.json
 themes.json
+
+# ---- 语音的临时文件 ----
+.speak-*.wav
+.speak-*.txt
 
 # ---- 你自己的球身图片（别人的脸不该进你的仓库）----
 assets/
