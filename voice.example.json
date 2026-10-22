@@ -1,0 +1,17 @@
+{
+    "backend":  "minimax",
+    "minimax":  {
+                    "emotion":  "",
+                    "voice_id":  "Chinese (Mandarin)_Sweet_Lady",
+                    "sample_rate":  32000,
+                    "key_file":  "_minimax-key.txt",
+                    "vol":  1,
+                    "pitch":  0,
+                    "model":  "speech-2.8-hd",
+                    "language_boost":  "Chinese",
+                    "speed":  1,
+                    "endpoint":  "https://api.minimaxi.com"
+                },
+    "poll_ms":  200,
+    "max_chars":  220
+}
