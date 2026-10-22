@@ -56,25 +56,31 @@ if not defined PY (
 echo   Python: %PY%
 echo.
 
-rem --- self-check the brain first, so you never end up typing into a
-rem     ball that silently cannot answer ---
-"%PY%" brain.py --test
-if errorlevel 1 (
-  echo.
-  echo   [!] Brain self-check failed. The ball will still start, but
-  echo       nobody will answer you. Fix the key in brain.json, or run
-  echo       the echo brain:  brain.py --brain echo
-  echo.
-  pause
-)
-
+rem --- the ball ---
 echo   Starting ball...
 start "" "%PY%" ball.py
-echo   Starting brain...
-start "" "%PY%" brain.py
+
+rem --- the voice ---
+rem  voice.py reads monologue.log and speaks each new line.
+rem
+rem  NOT starting brain.py on purpose. brain.py is the ball's OWN language
+rem  model: a second brain with its own conversation. Run it alongside a
+rem  host that already talks to the ball (the DSH plugin, for instance) and
+rem  every message gets answered twice, by two different AIs that do not
+rem  know about each other. If you DO want the orb to chat on its own, the
+rem  voice is the thing to drop, not the brain.
+rem
+rem  voice.py falls back to the Windows voice when no MiniMax key is
+rem  configured, and exits on its own after five failed lines, so starting
+rem  it unconditionally is safe.
+echo   Starting voice...
+start "" "%PY%" voice.py
 
 echo.
 echo   Both up. Close this window whenever -- it does not affect them.
 echo   Right-click the ball for settings. Type in the panel to talk.
+echo.
+echo   Voice settings: voice.json  (needs a MiniMax API key)
+echo   Pick a voice:   voice.py --pick
 echo.
 pause
