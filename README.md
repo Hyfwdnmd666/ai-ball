@@ -198,6 +198,61 @@ python brain.py --brain api      # 真大脑：需要一个 key
 存在 `brain_history.json`，重启不掉。只保留最近 `history_turns` 轮（默认 12）——
 免得请求越滚越贵。
 
+## 让它出声：`voice.py`
+
+`brain.py` 是**脑**，`voice.py` 是**嗓子**。它和 `brain.py` 是同一个模式：**一个独立进程，
+只认文件** —— 盯 `monologue.log`，把新说的话念出来。所以球不用改一行代码，
+你不想听就把它关掉。
+
+```bat
+python voice.py            :: 跟着独白念
+python voice.py --pick     :: 交互式挑音色（列出来 → 试听 → 存下来）
+python voice.py --test     :: 念一句验一下
+python voice.py --list     :: 看当前后端和音色
+```
+
+### 后端：为什么默认用 MiniMax，而不是 Windows 自带
+
+Windows 自带的 SAPI 本来是零依赖的首选。但这台机器的语音引擎是坏的：
+中文引擎数据目录不存在（注册表指到 `Speech_OneCore\...\M2052Huihui`，实际只有 `M2052Hongyu`），
+英文数据在但引擎照样拒绝。所以默认走 **MiniMax 在线语音**：
+
+- **`audio_setting.format` 支持 `wav`** —— 播放因此零依赖：`winsound` 直接吃 WAV，
+  不需要解码器、不需要 `mpv`、不需要装任何音频库
+- **`speech-2.8` 系列支持语气词标签** `(sighs)` `(laughs)` `(snorts)` `(gasp)` ——
+  这是真的情绪音效，不是念稿
+- 有个 `emotion` 参数（happy/sad/angry/…）和 `speed`/`pitch`/`vol`
+
+配置在 `voice.json`，key 放 `_minimax-key.txt`（一行；`#` 开头的说明行会被跳过）。
+国内版端点是 `https://api.minimaxi.com`，**国际版 `api.minimax.io` 的 key 不通用** ——
+用错了会得到 `2049 invalid api key`。
+
+### 三个踩过的坑
+
+**① `winsound` 不允许「内存 + 异步」同时用。**
+
+```
+SND_MEMORY | SND_ASYNC  →  Cannot play asynchronously from memory
+```
+
+异步播放必须走文件。所以合成结果先落盘到 `.speak-<pid>.wav` 再播；
+`--test` / `--say` 那种阻塞路径才可以吃内存。
+
+**② 新的一句必须打断旧的。**
+
+真人不会把上一句念完才开始下一句。合成要 1~2 秒，不打断的话排队会越拖越远，
+最后你在听三十秒前的话。`PlaySound(None, 0)` 掐断，然后合成新的一句。
+
+**③ 语气词标签是半角括号，动作描写是全角括号。**
+
+`clean_for_speech` 只删**全角**（……），保留**半角** (...) —— 因为 `(sighs)` 是标签，
+（小声）是动作描写。中文习惯用全角写动作，正好能区分开。
+
+### 熔断
+
+连续 5 句没念出来就停下，并说清楚先跑 `--test`。key 过期 / 断网 / 引擎坏了的时候，
+一直重试只会把日志刷满，而且球看起来"在说话"其实一声不吭 —— 那比直接停掉更难查。
+
 ## 右键菜单是自绘的，但长得像 Windows 原生的
 
 **深色底**、系统字体、整行可点、悬停高亮、分隔线、浅红退出 —— Windows 11 深色右键菜单的样子。
