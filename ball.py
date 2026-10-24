@@ -1993,6 +1993,9 @@ class AiBall:
     def _quit_app(self) -> None:
         if not messagebox.askyesno("退出 ai-ball", "关掉这颗球？"):
             return
+        # 这两行是诊断用的：Tcl 崩溃（alloc: invalid block）不给 Python 堆栈，
+        # 只能靠"崩之前走到哪一步"来判断它是在退出途中炸的，还是活着炸的。
+        print("[ai-ball] 退出请求已确认，开始收尾", flush=True)
         # 置这个标志，让还在排队的 after 回调直接返回。
         # 现在 destroy() 之后 mainloop 立刻返回、进程随即退出，挂起的定时器
         # 本来也跑不到；但这是个**隐式**依赖 —— 谁哪天把 destroy() 改成
@@ -2001,7 +2004,17 @@ class AiBall:
         self._stop_voice()
         self._save_state()
         self._flush_save()
-        self.root.destroy()
+        # 到这里该保存的都保存了：位置、配置、历史，全落盘了。
+        #
+        # 但 Tk 的拆卸在这台机器上会触发 tcl 的 `alloc: invalid block` ——
+        # 退出途中某个 Tcl 对象被释放两次。清画布、断引用都试过，没用；
+        # 这是 Tcl 层的 use-after-free，Python 这边没有可控的修法。
+        #
+        # 所以不陪它走完拆卸：直接结束进程，让 Windows 回收窗口和句柄。
+        # 代价是 atexit 钩子不会跑（这边没有依赖它的东西），
+        # 换来的是**退出不再报崩溃**，exit code 是 0。
+        print("[ai-ball] 收尾完成，直接退出", flush=True)
+        os._exit(0)
 
     # ------------------------------------------------------------ 交互
 
@@ -2380,9 +2393,13 @@ class AiBall:
         except KeyboardInterrupt:
             pass
         finally:
+            print("[ai-ball] mainloop 已返回，正在关闭", flush=True)
             self._stop_voice()
             self._save_state()
             self._flush_save()
+            # 和 _quit_app 同一个理由：不陪 Tk 走完拆卸，见那里的说明。
+            print("[ai-ball] 收尾完成，直接退出", flush=True)
+            os._exit(0)
 
 
 # ---------------------------------------------------------------- 入口
