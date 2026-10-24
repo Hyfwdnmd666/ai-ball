@@ -36,6 +36,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import subprocess
 import sys
 import time
 import tkinter as tk
@@ -134,6 +135,11 @@ DEFAULTS = {
         "file": "status.json",
         "poll_ms": 1000,
         "stale_s": 20,
+    },
+    # 嗓子跟着球一起起、一起关。见 _start_voice / _stop_voice。
+    # 关掉它不影响球：球只负责把话说出来，念不念是另一件事。
+    "voice": {
+        "enabled": True,
     },
 }
 
@@ -1964,6 +1970,7 @@ class AiBall:
         # 本来也跑不到；但这是个**隐式**依赖 —— 谁哪天把 destroy() 改成
         # quit()、或者让 mainloop 继续跑，就会满地 "invalid command name"。
         self._closing = True
+        self._stop_voice()
         self._save_state()
         self._flush_save()
         self.root.destroy()
@@ -2295,14 +2302,57 @@ class AiBall:
         self.text.delete("1.0", "end")
         self.text.configure(state="disabled")
 
+    # ------------------------------------------------------------ 嗓子
+
+    def _start_voice(self) -> None:
+        """把 voice.py 拉起来，让它跟着球一起活。
+
+        为什么让球自己起，而不是只写进 start.bat：`start.bat` 只是**一种**启动方式。
+        agent 通过插件拉球、你双击 bat、你直接 `python ball.py` —— 三条路都该有声，
+        所以嗓子归球管。
+
+        起不来也绝不拖累球：球是主体，嗓子是配件。
+        """
+        self._voice_proc = None
+        if not bool((self.cfg.get("voice") or {}).get("enabled", True)):
+            return
+        here = os.path.dirname(os.path.abspath(__file__))
+        script = os.path.join(here, "voice.py")
+        if not os.path.exists(script):
+            return
+        try:
+            self._voice_proc = subprocess.Popen(
+                [sys.executable, "-u", script],
+                cwd=here,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+        except Exception as exc:
+            print(f"[ai-ball] 嗓子没起来（球照常）：{exc}")
+
+    def _stop_voice(self) -> None:
+        """球关掉，嗓子跟着关 —— 不然会留一个孤儿进程对着空气说话。"""
+        p = getattr(self, "_voice_proc", None)
+        self._voice_proc = None
+        if p is None:
+            return
+        try:
+            p.terminate()
+        except Exception:
+            pass
+
     # ------------------------------------------------------------ 主循环
 
     def run(self) -> None:
+        self._start_voice()
         try:
             self.root.mainloop()
         except KeyboardInterrupt:
             pass
         finally:
+            self._stop_voice()
             self._save_state()
             self._flush_save()
 
