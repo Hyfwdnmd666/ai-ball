@@ -688,6 +688,14 @@ def main() -> int:
         print('\n改 voice.json 里的 "voice" 换成别的。')
         return 0
 
+    # 球现在会自己拉起嗓子。没有 key 时必须**立刻退出** —— 不然球每启动一次就留下
+    # 一个在后面不停失败、刷日志的进程。球照常运行，只是没有声音，说清楚就行。
+    if backend == "minimax":
+        mm = MiniMaxVoice(cfg)
+        if not mm.available():
+            log(f"MiniMax 用不了（{mm.describe()}）。球照常运行，只是没有声音。")
+            return 1
+
     speaker, which = pick_speaker(cfg)
 
     if args.say or args.test:
