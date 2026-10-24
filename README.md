@@ -201,11 +201,24 @@ python brain.py --brain api      # 真大脑：需要一个 key
 ## 让它出声：`voice.py`
 
 `brain.py` 是**脑**，`voice.py` 是**嗓子**。它和 `brain.py` 是同一个模式：**一个独立进程，
-只认文件** —— 盯 `monologue.log`，把新说的话念出来。所以球不用改一行代码，
-你不想听就把它关掉。
+只认文件** —— 盯 `monologue.log`，把新说的话念出来。
+
+**嗓子跟着球一起起、一起关。** `ball.py` 启动时 `Popen` 一个 `voice.py`，退出时
+`terminate` 它 —— 所以**任何**启动球的方式都带声音：双击 `start.bat`、直接 `python ball.py`、
+agent 通过插件拉起球，三条路一样。
+
+（`start.bat` **不**再单独起嗓子 —— 那会变成两个进程念同一份日志，一前一后。）
+
+起不来也绝不拖累球：球是主体，嗓子是配件。不想听就关掉：
+
+```json
+{ "voice": { "enabled": false } }
+```
+
+手动用：
 
 ```bat
-python voice.py            :: 跟着独白念
+python voice.py            :: 单独跑一个嗓子（球没在跑也行）
 python voice.py --pick     :: 交互式挑音色（列出来 → 试听 → 存下来）
 python voice.py --test     :: 念一句验一下
 python voice.py --list     :: 看当前后端和音色
