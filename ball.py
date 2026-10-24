@@ -162,7 +162,7 @@ MENU_W = 250
 MENU_H = 238
 # 二级菜单（「更多设置 ▸」展开的那块），跟主菜单同一套样式
 FLYOUT_W = 220
-FLYOUT_H = 393
+FLYOUT_H = 421
 
 # 面板相对球的位置
 SIDE_ORDER = ["right", "bottom", "left", "top"]
@@ -1761,6 +1761,8 @@ class AiBall:
         y += 10 + IH / 2
         self._fi_gloss = self._mm_item(c, W, y, "玻璃高光", self._toggle_gloss)
         y += IH
+        self._fi_voice = self._mm_item(c, W, y, "朗读", self._toggle_voice)
+        y += IH
         self._mm_item(c, W, y, "清除图片", self._clear_image)
         y += IH / 2 + 5
         self._mm_sep(c, W, y)
@@ -1820,6 +1822,14 @@ class AiBall:
             self._fi_gloss,
             text="开" if self.cfg["ball"].get("image_gloss", True) else "关",
         )
+        # _fi_voice 只在 _draw_flyout 里创建。菜单可能还没画完就被同步一次
+        # （配置变更、主题切换），那时 getattr 拿到 None —— 不能直接下标。
+        fi_voice = getattr(self, "_fi_voice", None)
+        if fi_voice is not None:
+            c.itemconfigure(
+                fi_voice,
+                text="开" if (self.cfg.get("voice") or {}).get("enabled", True) else "关",
+            )
         c.itemconfigure(self._fi_theme, text=self._theme_label())
 
     def _toggle_flyout(self) -> None:
@@ -1841,6 +1851,24 @@ class AiBall:
         b = self.cfg["ball"]
         b["image_gloss"] = not bool(b.get("image_gloss", True))
         self._relayout()
+        self._save_config()
+        self._flyout_sync()
+
+    def _toggle_voice(self) -> None:
+        """右键菜单里开关朗读。
+
+        **菜单点它要立刻生效**，不能只写进 config.json 等下次启动 —— 那会让这个开关
+        看起来坏了（点一下，球没反应，下次启动才知道生效了）。
+
+        所以：写配置 + 当场起/停子进程 + 保存。球和嗓子是父子关系，
+        这里停掉的只是嗓子，球照常说它的话，只是不出声。
+        """
+        v = self.cfg.setdefault("voice", {})
+        v["enabled"] = not bool(v.get("enabled", True))
+        if v["enabled"]:
+            self._start_voice()
+        else:
+            self._stop_voice()
         self._save_config()
         self._flyout_sync()
 
